@@ -84,10 +84,10 @@ The architecture may change as the project develops and additional services are 
 
 ### Phase 1 — Virtualization
 
-* [ ] Install Proxmox VE
-* [ ] Configure host networking
-* [ ] Configure storage
-* [ ] Configure remote administration
+* [x] Install Proxmox VE
+* [x] Configure host networking
+* [x] Configure storage
+* [x] Configure remote administration
 
 ### Phase 2 — Linux Server
 

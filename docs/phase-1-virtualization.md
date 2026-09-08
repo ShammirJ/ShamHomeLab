@@ -113,10 +113,40 @@ At this stage, all storage resides on a single physical drive.
 Dedicated backup storage may be added in a later phase to provide
 separation between production virtual machines and backups.
 
+## Remote Administration
+
+Remote administration was configured to allow the Proxmox host to be
+managed without requiring direct physical access to the server.
+
+Two methods of remote administration are available:
+
+- **Proxmox Web Interface** — Provides browser-based management of
+  virtual machines, containers, storage, networking, and host resources.
+- **SSH** — Provides command-line access to the underlying Proxmox host.
+
+The Proxmox management interface is accessible on the local network at:
+
+`https://10.0.0.50:8006`
+
+SSH connectivity was verified from a Windows administration workstation:
+
+`ssh root@10.0.0.50`
+
+An ED25519 SSH key pair was generated on the administration workstation.
+The public key was added to the Proxmox host's `authorized_keys` file,
+allowing key-based SSH authentication instead of requiring the Proxmox
+root password for each connection.
+
+The private SSH key remains stored only on the administration
+workstation.
+
+With remote administration configured, the Proxmox server can operate
+headlessly without a dedicated monitor, keyboard, or mouse.
+
 ## Current Progress
 
 - [x] Install Proxmox VE
 - [x] Configure package repositories and update host
 - [x] Configure host networking
-- [ ] Configure storage
-- [ ] Configure remote administration
+- [x] Configure storage
+- [x] Configure remote administration

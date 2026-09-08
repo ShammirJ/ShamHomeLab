@@ -86,7 +86,7 @@ The architecture may change as the project develops and additional services are 
 
 - [x] Install Proxmox VE
 - [x] Configure host networking
-- [ ] Configure storage
+- [x] Configure storage
 - [ ] Configure remote administration
 
 [View Phase 1 documentation](docs/phase-1-virtualization.md)

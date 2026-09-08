@@ -91,6 +91,28 @@ The network configuration was verified by:
 
 ---
 
+## Storage Configuration
+
+The Proxmox host uses a single 1 TB Kingston NVMe SSD for the
+hypervisor and virtual machine storage.
+
+The default Proxmox LVM-thin storage layout was retained because it
+provides separate storage locations for installation media and
+virtual machine disks without requiring additional disk configuration.
+
+| Storage     | Type      | Purpose                                               |
+| ----------- | --------- | ----------------------------------------------------- |
+| `local`     | Directory | ISO images, container templates, backups, and imports |
+| `local-lvm` | LVM-Thin  | Virtual machine and container disks                   |
+
+The physical NVMe drive uses a GPT partition table and contains
+dedicated BIOS boot, EFI, and LVM partitions. The drive's S.M.A.R.T.
+health check reports `PASSED` with 0% wearout.
+
+At this stage, all storage resides on a single physical drive.
+Dedicated backup storage may be added in a later phase to provide
+separation between production virtual machines and backups.
+
 ## Current Progress
 
 - [x] Install Proxmox VE

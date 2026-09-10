@@ -24,7 +24,11 @@ The VM was configured with the following networking environment:
 | Proxmox Host      | `10.0.0.50`     |
 | Ubuntu Server     | `10.0.0.51`     |
 
-After installation, the server was successfully accessed remotely from a Windows workstation using SSH.
+The running Ubuntu Server VM can be viewed from the Proxmox VE management interface:
+
+![Ubuntu Server VM Summary](docs/images/phase-2/ubuntu-vm-summary.png)
+
+After installation, the server was successfully accessed remotely from a Windows workstation using SSH:
 
 ```bash
 ssh shammir@10.0.0.51
@@ -90,7 +94,7 @@ sudo netplan try
 
 Using `netplan try` allowed the network configuration to be temporarily applied before it was confirmed, reducing the risk of permanently losing remote SSH access because of an incorrect network configuration.
 
-## Verification
+### Network Verification
 
 The static address was verified with:
 
@@ -104,7 +108,7 @@ The interface reported:
 inet 10.0.0.51/24
 ```
 
-The routing table was also checked to verify that traffic was routed through the LAN gateway.
+The routing table was checked to verify that traffic was routed through the LAN gateway:
 
 ```bash
 ip route
@@ -124,13 +128,13 @@ ping -c 4 google.com
 
 All connectivity tests completed successfully.
 
-Finally, remote administration was tested from the Windows workstation using the server's new static address:
+Remote administration was then tested from the Windows workstation using the server's new static address:
 
 ```powershell
 ssh shammir@10.0.0.51
 ```
 
-The Ubuntu Server VM is now consistently reachable at `10.0.0.51` and is ready for further server configuration.
+The Ubuntu Server VM is now consistently reachable at `10.0.0.51`.
 
 ## SSH Configuration
 
@@ -142,7 +146,7 @@ The OpenSSH server was verified to be running using:
 sudo systemctl status ssh
 ```
 
-The server was also confirmed to be listening for SSH connections on TCP port `22`.
+The server was also confirmed to be listening for SSH connections on TCP port `22`:
 
 ```bash
 sudo ss -tlnp | grep :22
@@ -161,11 +165,11 @@ The public key was copied to the Ubuntu Server and stored in:
 The `.ssh` directory and `authorized_keys` file were configured with appropriate permissions:
 
 ```text
-~/.ssh                 700
-~/.ssh/authorized_keys 600
+~/.ssh                  700
+~/.ssh/authorized_keys  600
 ```
 
-After installation of the public key, remote access was tested from Windows:
+After installing the public key, remote access was tested from Windows:
 
 ```powershell
 ssh shammir@10.0.0.51
@@ -185,7 +189,7 @@ During configuration, the effective SSH settings were inspected using:
 sudo sshd -T | grep -E 'passwordauthentication|pubkeyauthentication|permitrootlogin'
 ```
 
-Although `PasswordAuthentication no` had been configured in `/etc/ssh/sshd_config`, the effective configuration still reported:
+Although `PasswordAuthentication no` had been configured in `/etc/ssh/sshd_config`, the effective configuration initially reported:
 
 ```text
 passwordauthentication yes
@@ -239,9 +243,13 @@ Finally, the SSH service was reloaded:
 sudo systemctl reload ssh
 ```
 
-### Verification
+### SSH and Network Verification
 
-Public-key authentication was tested from the Windows workstation and successfully connected without requesting the Ubuntu account password:
+The final configuration confirms the server hostname, static IPv4 address, and hardened SSH authentication settings:
+
+![SSH and Network Verification](docs/images/phase-2/ssh-network-verification.png)
+
+Public-key authentication was successfully tested from the Windows workstation:
 
 ```powershell
 ssh shammir@10.0.0.51

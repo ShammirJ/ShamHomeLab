@@ -132,11 +132,140 @@ ssh shammir@10.0.0.51
 
 The Ubuntu Server VM is now consistently reachable at `10.0.0.51` and is ready for further server configuration.
 
+## SSH Configuration
+
+SSH was configured to provide secure remote administration of the Ubuntu Server VM from a Windows workstation.
+
+The OpenSSH server was verified to be running using:
+
+```bash
+sudo systemctl status ssh
+```
+
+The server was also confirmed to be listening for SSH connections on TCP port `22`.
+
+```bash
+sudo ss -tlnp | grep :22
+```
+
+### SSH Key Authentication
+
+An existing Ed25519 SSH key pair on the Windows workstation was used for authentication.
+
+The public key was copied to the Ubuntu Server and stored in:
+
+```text
+/home/shammir/.ssh/authorized_keys
+```
+
+The `.ssh` directory and `authorized_keys` file were configured with appropriate permissions:
+
+```text
+~/.ssh                 700
+~/.ssh/authorized_keys 600
+```
+
+After installation of the public key, remote access was tested from Windows:
+
+```powershell
+ssh shammir@10.0.0.51
+```
+
+The connection succeeded without requiring the Ubuntu user's password, confirming that public-key authentication was working.
+
+The private Ed25519 key remains on the Windows workstation and is never transferred to the server.
+
+### SSH Hardening
+
+SSH was hardened by disabling remote root login and password-based authentication while retaining public-key authentication.
+
+During configuration, the effective SSH settings were inspected using:
+
+```bash
+sudo sshd -T | grep -E 'passwordauthentication|pubkeyauthentication|permitrootlogin'
+```
+
+Although `PasswordAuthentication no` had been configured in `/etc/ssh/sshd_config`, the effective configuration still reported:
+
+```text
+passwordauthentication yes
+```
+
+Further investigation identified a cloud-init-generated configuration file:
+
+```text
+/etc/ssh/sshd_config.d/50-cloud-init.conf
+```
+
+containing:
+
+```text
+PasswordAuthentication yes
+```
+
+Because SSH configuration snippets are processed before later settings in the main configuration and the first obtained value is used, the cloud-init setting was taking precedence.
+
+A dedicated hardening configuration was therefore created:
+
+```text
+/etc/ssh/sshd_config.d/00-hardening.conf
+```
+
+with:
+
+```text
+PasswordAuthentication no
+PermitRootLogin no
+PubkeyAuthentication yes
+```
+
+The configuration was validated before reloading the SSH service:
+
+```bash
+sudo sshd -t
+```
+
+The effective configuration was then verified:
+
+```text
+permitrootlogin no
+pubkeyauthentication yes
+passwordauthentication no
+```
+
+Finally, the SSH service was reloaded:
+
+```bash
+sudo systemctl reload ssh
+```
+
+### Verification
+
+Public-key authentication was tested from the Windows workstation and successfully connected without requesting the Ubuntu account password:
+
+```powershell
+ssh shammir@10.0.0.51
+```
+
+Password-only authentication was then explicitly tested:
+
+```powershell
+ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no shammir@10.0.0.51
+```
+
+The server rejected the connection:
+
+```text
+Permission denied (publickey).
+```
+
+This confirms that password authentication is disabled and remote administration requires possession of an authorized SSH private key.
+
 ## Phase 2 Progress
 
 - [x] Deploy Ubuntu Server VM
 - [x] Configure static addressing
-- [ ] Configure SSH
+- [x] Configure SSH
 - [ ] Install Docker
 - [ ] Deploy Portainer
 - [ ] Deploy Uptime Kuma

@@ -26,7 +26,7 @@ The VM was configured with the following networking environment:
 
 The running Ubuntu Server VM can be viewed from the Proxmox VE management interface:
 
-![Ubuntu Server VM Summary](docs/images/phase-2/ubuntu-vm-summary.png)
+![Ubuntu Server VM Summary](images/phase-2/ubuntu-vm-summary.png)
 
 After installation, the server was successfully accessed remotely from a Windows workstation using SSH:
 
@@ -247,7 +247,7 @@ sudo systemctl reload ssh
 
 The final configuration confirms the server hostname, static IPv4 address, and hardened SSH authentication settings:
 
-![SSH and Network Verification](docs/images/phase-2/ssh-network-verification.png)
+![SSH and Network Verification](images/phase-2/ssh-network-verification.png)
 
 Public-key authentication was successfully tested from the Windows workstation:
 

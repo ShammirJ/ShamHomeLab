@@ -94,7 +94,7 @@ The architecture may change as the project develops and additional services are 
 ### Phase 2 — Linux Server
 
 - [x] Deploy Ubuntu Server VM
-- [ ] Configure static addressing
+- [x] Configure static addressing
 - [ ] Configure SSH
 - [ ] Install Docker
 - [ ] Deploy Portainer

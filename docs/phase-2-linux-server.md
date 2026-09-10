@@ -2,100 +2,140 @@
 
 ## Overview
 
-The second phase of the home lab project focuses on deploying a Linux server
-within the Proxmox virtualization environment established in Phase 1.
+The second phase of the home lab project focuses on deploying and configuring a Linux server that will host containerized applications and services.
 
-An Ubuntu Server virtual machine was deployed to provide a general-purpose
-Linux environment for hosting containerized services. This VM will later be
-configured with Docker, Portainer, and Uptime Kuma.
+An Ubuntu Server virtual machine was deployed on the Proxmox VE host. The VM is connected to the home LAN through the Proxmox Linux bridge and can be administered remotely using SSH.
 
-## Ubuntu Server VM
+## Ubuntu Server VM Deployment
 
-Ubuntu Server 24.04 LTS was deployed as a virtual machine on the Proxmox host.
+Ubuntu Server was deployed as a virtual machine on the Proxmox VE host.
 
-### Virtual Machine Configuration
+The VM was configured with the following networking environment:
 
-| Setting          | Configuration           |
-| ---------------- | ----------------------- |
-| VM ID            | `100`                   |
-| VM Name          | `ubuntu-server`         |
-| Operating System | Ubuntu Server 24.04 LTS |
-| CPU              | 2 vCPUs                 |
-| Memory           | 4 GiB                   |
-| Virtual Disk     | 64 GiB                  |
-| Disk Storage     | `local-lvm`             |
-| Disk Controller  | VirtIO SCSI             |
-| Network Adapter  | VirtIO                  |
-| Network Bridge   | `vmbr0`                 |
-| QEMU Guest Agent | Enabled                 |
+| Setting           | Configuration   |
+| ----------------- | --------------- |
+| Operating System  | Ubuntu Server   |
+| Hostname          | `ubuntu-server` |
+| Hypervisor        | Proxmox VE      |
+| Network Interface | `ens18`         |
+| Proxmox Bridge    | `vmbr0`         |
+| IPv4 Subnet       | `10.0.0.0/24`   |
+| Default Gateway   | `10.0.0.1`      |
+| Proxmox Host      | `10.0.0.50`     |
+| Ubuntu Server     | `10.0.0.51`     |
 
-The Ubuntu installation ISO was stored on Proxmox `local` storage while the
-VM's virtual disk was created on the `local-lvm` thin-provisioned storage pool.
+After installation, the server was successfully accessed remotely from a Windows workstation using SSH.
 
-## Storage Configuration
+```bash
+ssh shammir@10.0.0.51
+```
 
-Ubuntu was installed using the guided LVM storage configuration.
+## Static IP Configuration
 
-The 64 GiB virtual disk was divided into a boot partition and an LVM physical
-volume. Ubuntu created the `ubuntu-vg` volume group with the root filesystem
-stored on the `ubuntu-lv` logical volume.
+The Ubuntu Server initially received the IPv4 address `10.0.0.95/24` dynamically through DHCP.
 
-Approximately half of the volume group remains unallocated, allowing the root
-logical volume to be expanded or additional logical volumes to be created in
-the future.
+The active network interface was identified using:
 
-Disk encryption was not enabled for this VM.
+```bash
+ip addr
+```
 
-## Networking
+The routing table was inspected using:
 
-The VM is connected to the existing Proxmox Linux bridge `vmbr0` using a
-VirtIO virtual network adapter.
+```bash
+ip route
+```
 
-During installation, the Ubuntu interface `ens18` received the following
-address through DHCP:
+This confirmed that the VM was using the `ens18` interface and the router at `10.0.0.1` as its default gateway.
 
-| Setting            | Value          |
-| ------------------ | -------------- |
-| Interface          | `ens18`        |
-| IPv4 Address       | `10.0.0.95/24` |
-| Address Assignment | DHCP           |
-| Network            | `10.0.0.0/24`  |
+Ubuntu Server uses Netplan for network configuration. The existing configuration was located at:
 
-The DHCP address is temporary and will be replaced with a permanent address
-during the static addressing configuration.
+```text
+/etc/netplan/50-cloud-init.yaml
+```
 
-Network connectivity was verified by successfully reaching both an external
-IP address and a DNS hostname with no packet loss.
+The original configuration used DHCP:
 
-## Remote Administration
+```yaml
+network:
+  version: 2
+  ethernets:
+    ens18:
+      dhcp4: true
+```
 
-The OpenSSH Server package was installed during the Ubuntu installation.
+The configuration was changed to assign the server the static IPv4 address `10.0.0.51/24`:
 
-Remote access from a Windows workstation was successfully tested using:
+```yaml
+network:
+  version: 2
+  ethernets:
+    ens18:
+      dhcp4: false
+      addresses:
+        - 10.0.0.51/24
+      routes:
+        - to: default
+          via: 10.0.0.1
+      nameservers:
+        addresses:
+          - 10.0.0.1
+```
 
-`ssh shammir@10.0.0.95`
+The new configuration was tested using:
 
-The SSH connection successfully authenticated using the Ubuntu user's
-password and provided a remote shell on `ubuntu-server`.
+```bash
+sudo netplan try
+```
 
-SSH key-based authentication will be configured later using an Ed25519 key
-pair.
+Using `netplan try` allowed the network configuration to be temporarily applied before it was confirmed, reducing the risk of permanently losing remote SSH access because of an incorrect network configuration.
 
 ## Verification
 
-The initial Ubuntu Server deployment was verified by confirming:
+The static address was verified with:
 
-- The system hostname is `ubuntu-server`.
-- The `ens18` network interface is operational.
-- The VM received an IPv4 address from DHCP.
-- Internet connectivity is functional.
-- DNS resolution is functional.
-- Remote SSH access from the administration workstation is functional.
+```bash
+ip addr show ens18
+```
+
+The interface reported:
+
+```text
+inet 10.0.0.51/24
+```
+
+The routing table was also checked to verify that traffic was routed through the LAN gateway.
+
+```bash
+ip route
+```
+
+Connectivity to the local gateway was tested with:
+
+```bash
+ping -c 4 10.0.0.1
+```
+
+Internet connectivity and DNS resolution were verified with:
+
+```bash
+ping -c 4 google.com
+```
+
+All connectivity tests completed successfully.
+
+Finally, remote administration was tested from the Windows workstation using the server's new static address:
+
+```powershell
+ssh shammir@10.0.0.51
+```
+
+The Ubuntu Server VM is now consistently reachable at `10.0.0.51` and is ready for further server configuration.
 
 ## Phase 2 Progress
 
 - [x] Deploy Ubuntu Server VM
-- [ ] Configure static addressing
+- [x] Configure static addressing
 - [ ] Configure SSH
 - [ ] Install Docker
 - [ ] Deploy Portainer

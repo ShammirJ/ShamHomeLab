@@ -93,7 +93,7 @@ The architecture may change as the project develops and additional services are 
 
 ### Phase 2 — Linux Server
 
-- [ ] Deploy Ubuntu Server VM
+- [x] Deploy Ubuntu Server VM
 - [ ] Configure static addressing
 - [ ] Configure SSH
 - [ ] Install Docker

@@ -96,7 +96,7 @@ The architecture may change as the project develops and additional services are 
 - [x] Deploy Ubuntu Server VM
 - [x] Configure static addressing
 - [x] Configure SSH
-- [ ] Install Docker
+- [x] Install Docker
 - [ ] Deploy Portainer
 - [ ] Deploy Uptime Kuma
 

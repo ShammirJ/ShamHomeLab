@@ -430,20 +430,150 @@ docker ps -a
 
 Docker Engine is now operational on the Ubuntu Server VM and ready to host containerized home lab services.
 
-## Phase 2 Progress
+## Portainer Deployment
+
+Portainer Community Edition was deployed as a Docker container to provide a web-based management interface for the Docker environment.
+
+A persistent Docker volume was first created to store Portainer configuration and application data:
+
+```bash
+docker volume create portainer_data
+```
+
+Portainer was then deployed using the following Docker configuration:
+
+```bash
+docker run -d \
+  -p 9443:9443 \
+  --name portainer \
+  --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data \
+  portainer/portainer-ce:lts
+```
+
+The deployment uses:
+
+| Configuration          | Purpose                                                      |
+| ---------------------- | ------------------------------------------------------------ |
+| `9443:9443`            | Exposes the Portainer HTTPS web interface                    |
+| `--restart=always`     | Automatically restarts Portainer with Docker                 |
+| `/var/run/docker.sock` | Allows Portainer to communicate with the local Docker Engine |
+| `portainer_data:/data` | Provides persistent storage for Portainer configuration      |
+
+Portainer was accessed from another system on the LAN using:
+
+```text
+https://<ubuntu-server-ip>:9443
+```
+
+The initial administrator account was configured and Edge Compute features were skipped because Portainer is currently managing only the local Docker environment.
+
+After setup, Portainer successfully detected the local Docker Engine through the Docker socket.
+
+![Portainer Environment Dashboard](images/phase-2//portainer-environment-dashboard.png)
+
+The Portainer dashboard confirmed access to the Docker host and its containers, images, networks, and volumes.
+
+### Result
+
+Portainer is now available as a graphical management interface for the Docker environment. Docker can be administered either through the Docker CLI over SSH or through the Portainer web interface.
+
+This provides the foundation for deploying and managing additional containerized services within the home lab.
+
+## Uptime Kuma Deployment
+
+Uptime Kuma was deployed as a Docker container to provide service availability and uptime monitoring for the home lab.
+
+A persistent Docker volume was created to store monitoring configuration, user data, and historical uptime information:
+
+```bash
+docker volume create uptime-kuma
+```
+
+Uptime Kuma was then deployed using:
+
+```bash
+docker run -d \
+  --restart=always \
+  -p 3001:3001 \
+  -v uptime-kuma:/app/data \
+  --name uptime-kuma \
+  louislam/uptime-kuma:1
+```
+
+The deployment uses:
+
+| Configuration           | Purpose                                                           |
+| ----------------------- | ----------------------------------------------------------------- |
+| `3001:3001`             | Exposes the Uptime Kuma web interface on port 3001                |
+| `--restart=always`      | Automatically restarts Uptime Kuma with Docker                    |
+| `uptime-kuma:/app/data` | Provides persistent storage for configuration and monitoring data |
+
+Uptime Kuma was accessed from another system on the LAN using:
+
+```text
+http://<ubuntu-server-ip>:3001
+```
+
+After the initial administrator account was configured, monitors were created for existing home lab services.
+
+| Monitor    | Address                  | Check Interval |
+| ---------- | ------------------------ | -------------- |
+| Proxmox VE | `https://10.0.0.50:8006` | 60 seconds     |
+| Portainer  | `https://10.0.0.51:9443` | 60 seconds     |
+
+Because Proxmox and Portainer currently use locally generated/self-signed TLS certificates, certificate verification was disabled for these internal monitoring checks.
+
+Both services successfully reported an **Up** status.
+
+![Uptime Kuma Monitoring](images//phase-2/uptime-kuma-monitoring.png)
+
+The monitoring test also confirmed that the Uptime Kuma container can communicate with services running both on its Docker host and elsewhere on the local network.
+
+### Result
+
+Uptime Kuma now provides centralized availability monitoring for services within the home lab. Additional monitors can be added as new services are deployed.
+
+The current Docker environment consists of:
+
+- **Portainer** — Docker container management interface
+- **Uptime Kuma** — Service availability and uptime monitoring
+
+Both containers use persistent Docker volumes and are configured to automatically restart with the Docker Engine.
+
+## Phase 2 Result
+
+Phase 2 established a dedicated Linux server environment for hosting containerized home lab services.
+
+The completed architecture is:
+
+```text
+Physical Server
+└── Proxmox VE
+    │
+    └── Ubuntu Server VM
+        │
+        └── Docker Engine
+            │
+            ├── Portainer
+            │   └── HTTPS :9443
+            │
+            └── Uptime Kuma
+                └── HTTP :3001
+```
+
+The Ubuntu Server VM is configured with static network addressing and can be remotely administered over SSH using public-key authentication.
+
+Docker Engine provides the container runtime for self-hosted applications, while Portainer provides graphical container management and Uptime Kuma provides service availability monitoring.
+
+### Phase 2 Checklist
 
 - [x] Deploy Ubuntu Server VM
 - [x] Configure static addressing
 - [x] Configure SSH
 - [x] Install Docker
-- [ ] Deploy Portainer
-- [ ] Deploy Uptime Kuma
+- [x] Deploy Portainer
+- [x] Deploy Uptime Kuma
 
-## Phase 2 Progress
-
-- [x] Deploy Ubuntu Server VM
-- [x] Configure static addressing
-- [x] Configure SSH
-- [x] Install Docker
-- [ ] Deploy Portainer
-- [ ] Deploy Uptime Kuma
+**Phase 2 — Linux Server complete.**

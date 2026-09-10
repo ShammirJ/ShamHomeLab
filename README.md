@@ -97,8 +97,8 @@ The architecture may change as the project develops and additional services are 
 - [x] Configure static addressing
 - [x] Configure SSH
 - [x] Install Docker
-- [ ] Deploy Portainer
-- [ ] Deploy Uptime Kuma
+- [x] Deploy Portainer
+- [x] Deploy Uptime Kuma
 
 ### Phase 3 — Windows Infrastructure
 
